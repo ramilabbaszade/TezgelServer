@@ -54,12 +54,14 @@ export const createCategory = async (req, res, next) => {
         const category = await Category.create({
             title,
             shortDescription,
-            sort: count + 1
+            sort: count + 1,
         });
 
-        // images.forEach((im, i) => {
-        //     s3Uploader(im.imageUri, `${category._id}-${i}`)
-        // })
+        category.images = images.map(async (im, i) => {
+            return ({imageUri: await s3Uploader(im.imageUri, `${category._id}-${i}`)})
+        })
+
+        category.save()
 
         return res.status(200).json({ data: category, 
             msg: 'Category created.', 
@@ -87,7 +89,8 @@ export const updateCategories = async (req, res, next) => {
 export const updateCategory = async (req, res, next) => {
     const {
         title,
-        shortDescription
+        shortDescription,
+        images
     } = req.body;
 
     try {
