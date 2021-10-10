@@ -58,7 +58,7 @@ export const createCategory = async (req, res, next) => {
         });
 
         category.images = images.map(async (im, i) => {
-            return ({imageUri: await s3Uploader(im.imageUri, `${category._id}-${i}`)})
+            return ({imageUri: await s3Uploader(im.imageUri, `${category._id}-${i}.jpg`)})
         })
 
         category.save()
