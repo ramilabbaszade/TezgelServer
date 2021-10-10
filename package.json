@@ -1,0 +1,35 @@
+{
+  "name": "expargo-api",
+  "version": "3.0.0",
+  "description": "Expargo LTD Rest API",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "author": "Ismail Aras",
+  "license": "ISC",
+  "dependencies": {
+    "@emotion/styled": "^11.3.0",
+    "@woocommerce/woocommerce-rest-api": "^1.0.1",
+    "aws-sdk": "^2.973.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^10.0.0",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "google-auth-library": "^7.4.0",
+    "html-pdf-node": "^1.0.7",
+    "jsbarcode": "^3.11.4",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.13.3",
+    "mongoose-query-parser": "^1.2.1",
+    "mongoose-sequence": "^5.3.1",
+    "node-fetch": "^2.6.1",
+    "nodemailer": "^6.6.3",
+    "nodemon": "^2.0.12",
+    "pug": "^3.0.2"
+  }
+}
