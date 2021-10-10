@@ -61,7 +61,7 @@ export const createCategory = async (req, res, next) => {
             category.images.push({imageUri: await s3Uploader(im.imageUri, `${category.title}-${i}.jpg`)})
         })
 
-        category.save()
+        await category.save()
 
         return res.status(200).json({ data: category, 
             msg: 'Category created.', 
