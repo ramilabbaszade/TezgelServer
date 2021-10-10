@@ -11,11 +11,10 @@ const s3 = new AWS.S3({
 
 const s3Uploader = async (data, fileName) => {
     return new Promise((resolve) => {
-        const base64data = Buffer.from(data, 'binary');
         s3.putObject({
             Bucket: bucketName,
             Key: fileName,
-            Body: base64data,
+            Body: data,
             ACL: 'public-read'
         }, resp => {
             console.log(resp)
