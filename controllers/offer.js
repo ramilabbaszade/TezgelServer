@@ -1,23 +1,23 @@
 import { MongooseQueryParser } from 'mongoose-query-parser';
-import Category from '../models/category.js';
+import Offer from '../models/offer.js';
 import { NotAuthorized, BadRequest } from "../utils/errors.js";
 import s3Uploader from '../utils/s3-uploader.js';
 
 const parser = new MongooseQueryParser();
 
-export const getCategory = async (req, res, next) => {
+export const getOffer = async (req, res, next) => {
     try {
-        return res.json({ data: await Category.findById(req.params._id) });
+        return res.json({ data: await Offer.findById(req.params._id) });
     } catch (err) {
         next(err)
     }
 }
 
-export const getCategories = async (req, res, next) => {
+export const getOffers = async (req, res, next) => {
     const { filter, sort, limit, skip, select } = parser.parse(req.query)
 
     try {
-        const categories = await Category
+        const offers = await Offer
             .find(filter)
             .sort(sort)
             .limit(limit)
@@ -25,10 +25,10 @@ export const getCategories = async (req, res, next) => {
             .select(select)
             .populate('_products')
 
-        const count = await Category.countDocuments();
+        const count = await Offer.countDocuments();
 
         return res.json({
-            data: categories,
+            data: offers,
             count,
             limit,
             skip
@@ -38,87 +38,91 @@ export const getCategories = async (req, res, next) => {
     }
 }
 
-export const createCategory = async (req, res, next) => {
+export const createOffer = async (req, res, next) => {
     const {
         title,
         shortDescription,
+        description,
         images
     } = req.body;
     try {
-        const c = await Category.findOne({ title });
+        const c = await Offer.findOne({ title });
 
-        if (c) throw new BadRequest('Category already created with title')
+        if (c) throw new BadRequest('Offer already created with title')
 
-        const count = await Category.countDocuments();
+        const count = await Offer.countDocuments();
 
-        const category = await Category.create({
+        const offer = await Offer.create({
             title,
             shortDescription,
+            description,
             sort: count + 1
         });
 
         await images.forEach(async (im, i) => {
             const imageUri = await s3Uploader(im.imageUri, `${title}-${i}.jpg`);
-            category.images.push({imageUri})
-            await category.save()
+            offer.images.push({imageUri})
+            await offer.save()
         })
 
-        return res.status(200).json({ data: category, 
-            msg: 'Category created.', 
+        return res.status(200).json({ data: offer, 
+            msg: 'Offer created.', 
          });
     } catch (err) {
         next(err)
     }
 }
 
-export const updateCategories = async (req, res, next) => {
+export const updateOffers = async (req, res, next) => {
     try {
         req.body.data.forEach(async (c, i) => {
-            const category = await Category.findById(c._id);
-            category.sort = i + 1;
-            await category.save();
+            const offer = await Offer.findById(c._id);
+            offer.sort = i + 1;
+            await offer.save();
         })
         return res.status(200).json({
-            msg: 'Categories updated.', 
+            msg: 'Offers updated.', 
          });
     } catch (err) {
         next(err)
     }
 }
 
-export const updateCategory = async (req, res, next) => {
+export const updateOffer = async (req, res, next) => {
     const {
         title,
         shortDescription,
+        description,
         images
     } = req.body;
 
     try {
-        const category = await Category.findById(req.params._id);
+        const offer = await Offer.findById(req.params._id);
 
-        category.title = title;
-        category.shortDescription = shortDescription;
+        offer.title = title;
+        offer.shortDescription = shortDescription;
+        offer.description = description;
 
         await images.forEach(async (im, i) => {
             const imageUri = !im._id 
                 ? await s3Uploader(im.imageUri, `${title}-${i}.jpg`) 
                 : im.imageUri;
-            category.images.push({imageUri})
-            await category.save()
+            offer.images.push({imageUri})
+            await offer.save()
         })
 
-        return res.status(200).json({ data: category, msg: 'Category updated.' });
+        return res.status(200).json({ data: offer, msg: 'Offer updated.' });
     } catch (err) {
         next(err);
     }
 }
 
-export const deleteCategories = async (req, res, next) => {
+export const deleteOffers = async (req, res, next) => {
     try {
         req.body._ids.forEach(async _id => {
-            await Category.findByIdAndRemove(_id);
+            await Offer.findByIdAndRemove(_id);
         })
-        return res.status(200).json({ msg: 'Categories deleted.' });
+        return res.status(200).json({ msg: 'Offers deleted.' });
     } catch (err) {
         next(err)
     }

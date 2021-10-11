@@ -1,7 +1,8 @@
 import { MongooseQueryParser } from 'mongoose-query-parser';
-import Product from '../models/product.js';
 import Category from '../models/category.js';
+import Product from '../models/product.js';
 import { NotAuthorized, BadRequest } from "../utils/errors.js";
+import s3Uploader from '../utils/s3-uploader.js';
 
 const parser = new MongooseQueryParser();
 
@@ -37,14 +38,71 @@ export const getProducts = async (req, res, next) => {
     }
 }
 
+export const createProduct = async (req, res, next) => {
+    const {
+        title,
+        shortDescription,
+        images,
+        price,
+        salePrice,
+        description,
+        _category
+    } = req.body;
+    try {
+        const c = await Product.findOne({ title });
+
+        if (c) throw new BadRequest('Product already created with title')
+
+        const count = await Product.countDocuments();
+
+        const product = await Product.create({
+            title,
+            shortDescription,
+            price,
+            description,
+            salePrice,
+            _category,
+            sort: count + 1
+        });
+
+        await images.forEach(async (im, i) => {
+            const imageUri = await s3Uploader(im.imageUri, `${title}-${i}.jpg`);
+            product.images.push({imageUri})
+            await product.save()
+        })
+
+        const category = await Category.findById(_category);
+
+        category._products.push(product._id)
+
+        await category.save();
+
+        return res.status(200).json({ data: product, 
+            msg: 'Product created.', 
+         });
+    } catch (err) {
+        next(err)
+    }
+}
 
 export const updateProducts = async (req, res, next) => {
     try {
+        let products = [];
+        let _category;
         req.body.data.forEach(async (c, i) => {
             const product = await Product.findById(c._id);
             product.sort = i + 1;
             await product.save();
+            _category = product._category;
+            products.push(product)
         })
+
+        const category = await Category.findById(_category);
+
+        category._products = products.map(p => p._id);
+
+        await category.save();
+
         return res.status(200).json({
             msg: 'Products updated.', 
          });
@@ -53,86 +111,38 @@ export const updateProducts = async (req, res, next) => {
     }
 }
 
-
-export const createProduct = async (req, res, next) => {
+export const updateProduct = async (req, res, next) => {
     const {
         title,
         shortDescription,
-        description,
+        images,
         price,
         salePrice,
-        images,
-        _category,
-    } = req.body;
-    try {
-        const c = await Product.findOne({ title });
-        if (c) throw new BadRequest('Product already created with title')
-        const product = await Product.create({
-            title,
-            shortDescription,
-            description,
-            price,
-            salePrice,
-            _category,
-            images
-        });
-
-        const category = await Category.findById(_category);
-
-        category._products.push(product._id)
-
-        await category.save();
-
-        return res.status(200).json({
-            data: product,
-            msg: 'Product created.',
-        });
-    } catch (err) {
-        next(err)
-    }
-}
-
-export const updateProduct = async (req, res, next) => {
-    const {
-        firstName,
-        lastName,
-        emailAddress,
-        receivers,
-        isForeign,
-        password,
-        role,
-        _branch
+        description,
+        _category
     } = req.body;
 
     try {
-        // const product = await Product.findById(req.params._id);
+        const product = await Product.findById(req.params._id);
 
-        // if (!product)
-        //     return res
-        //         .status(404)
-        //         .send({ msg: await getTranslation(translationKeys.NOT_FOUND.key, req.lang) });
+        product.title = title;
+        product.shortDescription = shortDescription;
+        product.price = price;
+        product.salePrice = salePrice;
+        product.description = description;
+        product._category = _category;
 
-        // if ((req.currentProductRole !== 'admin' && product.role !== 'customer')
-        //     && (req.currentProductRole === 'customer' && product._id !== req.currentProductId))
-        //     throw new NotAuthorized(translationKeys.PERMISSION_ERROR.key);
+        await product.save()
 
-        // const emailAlreadyInUse = await Product.findOne({ 'email.address': emailAddress.toLowerCase() });
+        await images.forEach(async (im, i) => {
+            const imageUri = !im._id 
+                ? await s3Uploader(im.imageUri, `${title}-${i}.jpg`) 
+                : im.imageUri;
+            product.images.push({imageUri})
+            await product.save()
+        })
 
-        // if (emailAlreadyInUse && emailAlreadyInUse.email.address !== product.email.address)
-        //     throw new BadRequest(translationKeys.EMAIL_ALREADY_IN_USE.key)
-
-        // product.firstName = firstName;
-        // product.lastName = lastName;
-        // product.email.address = emailAddress;
-        // product.receivers = receivers;
-        // product.isForeign = isForeign;
-        // product.password = await bcrypt.hash(password, 12);
-        // product.role = role;
-        // product._branch = _branch;
-
-        // await product.save();
-
-        // return res.status(200).json({ product, msg: 'Product başarıyla güncellendi.' });
+        return res.status(200).json({ data: product, msg: 'Product updated.' });
     } catch (err) {
         next(err);
     }

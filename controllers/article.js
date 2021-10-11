@@ -1,23 +1,23 @@
 import { MongooseQueryParser } from 'mongoose-query-parser';
-import Category from '../models/category.js';
+import Article from '../models/article.js';
 import { NotAuthorized, BadRequest } from "../utils/errors.js";
 import s3Uploader from '../utils/s3-uploader.js';
 
 const parser = new MongooseQueryParser();
 
-export const getCategory = async (req, res, next) => {
+export const getArticle = async (req, res, next) => {
     try {
-        return res.json({ data: await Category.findById(req.params._id) });
+        return res.json({ data: await Article.findById(req.params._id) });
     } catch (err) {
         next(err)
     }
 }
 
-export const getCategories = async (req, res, next) => {
+export const getArticles = async (req, res, next) => {
     const { filter, sort, limit, skip, select } = parser.parse(req.query)
 
     try {
-        const categories = await Category
+        const articles = await Article
             .find(filter)
             .sort(sort)
             .limit(limit)
@@ -25,10 +25,10 @@ export const getCategories = async (req, res, next) => {
             .select(select)
             .populate('_products')
 
-        const count = await Category.countDocuments();
+        const count = await Article.countDocuments();
 
         return res.json({
-            data: categories,
+            data: articles,
             count,
             limit,
             skip
@@ -38,87 +38,91 @@ export const getCategories = async (req, res, next) => {
     }
 }
 
-export const createCategory = async (req, res, next) => {
+export const createArticle = async (req, res, next) => {
     const {
         title,
         shortDescription,
+        description,
         images
     } = req.body;
     try {
-        const c = await Category.findOne({ title });
+        const c = await Article.findOne({ title });
 
-        if (c) throw new BadRequest('Category already created with title')
+        if (c) throw new BadRequest('Article already created with title')
 
-        const count = await Category.countDocuments();
+        const count = await Article.countDocuments();
 
-        const category = await Category.create({
+        const article = await Article.create({
             title,
             shortDescription,
+            description,
             sort: count + 1
         });
 
         await images.forEach(async (im, i) => {
             const imageUri = await s3Uploader(im.imageUri, `${title}-${i}.jpg`);
-            category.images.push({imageUri})
-            await category.save()
+            article.images.push({imageUri})
+            await article.save()
         })
 
-        return res.status(200).json({ data: category, 
-            msg: 'Category created.', 
+        return res.status(200).json({ data: article, 
+            msg: 'Article created.', 
          });
     } catch (err) {
         next(err)
     }
 }
 
-export const updateCategories = async (req, res, next) => {
+export const updateArticles = async (req, res, next) => {
     try {
         req.body.data.forEach(async (c, i) => {
-            const category = await Category.findById(c._id);
-            category.sort = i + 1;
-            await category.save();
+            const article = await Article.findById(c._id);
+            article.sort = i + 1;
+            await article.save();
         })
         return res.status(200).json({
-            msg: 'Categories updated.', 
+            msg: 'Articles updated.', 
          });
     } catch (err) {
         next(err)
     }
 }
 
-export const updateCategory = async (req, res, next) => {
+export const updateArticle = async (req, res, next) => {
     const {
         title,
         shortDescription,
+        description,
         images
     } = req.body;
 
     try {
-        const category = await Category.findById(req.params._id);
+        const article = await Article.findById(req.params._id);
 
-        category.title = title;
-        category.shortDescription = shortDescription;
+        article.title = title;
+        article.shortDescription = shortDescription;
+        article.description = description;
 
         await images.forEach(async (im, i) => {
             const imageUri = !im._id 
                 ? await s3Uploader(im.imageUri, `${title}-${i}.jpg`) 
                 : im.imageUri;
-            category.images.push({imageUri})
-            await category.save()
+            article.images.push({imageUri})
+            await article.save()
         })
 
-        return res.status(200).json({ data: category, msg: 'Category updated.' });
+        return res.status(200).json({ data: article, msg: 'Article updated.' });
     } catch (err) {
         next(err);
     }
 }
 
-export const deleteCategories = async (req, res, next) => {
+export const deleteArticles = async (req, res, next) => {
     try {
         req.body._ids.forEach(async _id => {
-            await Category.findByIdAndRemove(_id);
+            await Article.findByIdAndRemove(_id);
         })
-        return res.status(200).json({ msg: 'Categories deleted.' });
+        return res.status(200).json({ msg: 'Articles deleted.' });
     } catch (err) {
         next(err)
     }

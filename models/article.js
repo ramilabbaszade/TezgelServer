@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const { Schema, model } = mongoose;
 
 
-const categorySchema = new Schema({
+const articleSchema = new Schema({
     title: {
         type: String,
         required: true,
@@ -16,13 +16,9 @@ const categorySchema = new Schema({
         {
             imageUri: String
         }
-    ],
-    _products: [{
-        type: Schema.Types.ObjectId,
-        ref: "Product",
-    }]
+    ]
 }, { timestamps: true });
 
-const Category = model('Category', categorySchema);
+const Article = model('Article', articleSchema);
 
-export default Category;
+export default Article;

@@ -11,13 +11,14 @@ const s3 = new AWS.S3({
 
 const s3Uploader = async (data, fileName) => {
     return new Promise((resolve) => {
+        const base64data = Buffer.from(data, 'base64');
         s3.putObject({
             Bucket: bucketName,
             Key: fileName,
-            Body: data,
+            Body: base64data,
             ACL: 'public-read'
-        }, resp => {
-            console.log(resp)
+        }, (err, data) => {
+            console.log(err, data)
             resolve(`https://${bucketName}.fra1.digitaloceanspaces.com/${fileName}`)
         });
     })
