@@ -67,6 +67,7 @@ export const createCategory = async (req, res, next) => {
             msg: 'Category created.', 
          });
     } catch (err) {
+        console.log(err.message)
         next(err)
     }
 }
@@ -98,6 +99,7 @@ export const updateCategory = async (req, res, next) => {
 
         category.title = title;
         category.shortDescription = shortDescription;
+        category.description = description;
 
         await images.forEach(async (im, i) => {
             const imageUri = !im._id 
