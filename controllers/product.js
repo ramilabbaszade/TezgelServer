@@ -132,13 +132,15 @@ export const updateProduct = async (req, res, next) => {
         product.description = description;
         product._category = _category;
 
-        await product.save()
+        product.images = [];
+
+        await product.save();
 
         await images.forEach(async (im, i) => {
-            const imageUri = !im._id 
-                ? await s3Uploader(im.imageUri, `${title}-${i}.jpg`) 
+            const imageUri = !im._id
+                ? await s3Uploader(im.imageUri, `${title}-${i}.jpg`)
                 : im.imageUri;
-            product.images.push({imageUri})
+                product.images.push({ imageUri })
             await product.save()
         })
 

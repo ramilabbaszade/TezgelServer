@@ -59,9 +59,15 @@ export const createOffer = async (req, res, next) => {
             sort: count + 1
         });
 
+        offer.images = [];
+
+        await offer.save();
+
         await images.forEach(async (im, i) => {
-            const imageUri = await s3Uploader(im.imageUri, `${title}-${i}.jpg`);
-            offer.images.push({imageUri})
+            const imageUri = !im._id
+                ? await s3Uploader(im.imageUri, `${title}-${i}.jpg`)
+                : im.imageUri;
+                offer.images.push({ imageUri })
             await offer.save()
         })
 

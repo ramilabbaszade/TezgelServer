@@ -108,7 +108,7 @@ export const updateCategory = async (req, res, next) => {
         
         category.images = [];
 
-        await category.save()
+        await category.save();
 
         await images.forEach(async (im, i) => {
             const imageUri = !im._id

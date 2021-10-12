@@ -103,11 +103,15 @@ export const updateArticle = async (req, res, next) => {
         article.shortDescription = shortDescription;
         article.description = description;
 
+        article.images = [];
+
+        await article.save();
+
         await images.forEach(async (im, i) => {
-            const imageUri = !im._id 
-                ? await s3Uploader(im.imageUri, `${title}-${i}.jpg`) 
+            const imageUri = !im._id
+                ? await s3Uploader(im.imageUri, `${title}-${i}.jpg`)
                 : im.imageUri;
-            article.images.push({imageUri})
+                article.images.push({ imageUri })
             await article.save()
         })
 
