@@ -116,8 +116,9 @@ export const updateCategory = async (req, res, next) => {
                 ? await s3Uploader(im.imageUri, `${title}-${makePinCode(4)}-${i}.jpg`)
                 : im.imageUri;
             category.images.push({ imageUri })
-            await category.save()
         })
+
+        await category.save()
 
         return res.status(200).json({ data: category, msg: 'Category updated.' });
     } catch (err) {
