@@ -96,3 +96,7 @@ export const validURL = (str) => {
   var pattern = new RegExp('^(http|https)://','i');
   return !!pattern.test(str);
 }
+
+export const sleep = (ms) => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
