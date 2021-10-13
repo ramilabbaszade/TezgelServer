@@ -111,14 +111,29 @@ export const updateCategory = async (req, res, next) => {
 
         await category.save();
 
-        await images.forEach(async (im, i) => {
+        const newImages = images.map(async (im, i) => {
             const imageUri = !im._id
                 ? await s3Uploader(im.imageUri, `${title}-${makePinCode(4)}-${i}.jpg`)
                 : im.imageUri;
-            category.images.push({ imageUri })
-            await category.save()
-            await sleep(2000);
+            return {imageUri};
+            
         })
+
+        console.log(newImages)
+
+        category.images = newImages
+        await category.save()
+
+        // await images.forEach(async (im, i) => {
+        //     const imageUri = !im._id
+        //         ? await s3Uploader(im.imageUri, `${title}-${makePinCode(4)}-${i}.jpg`)
+        //         : im.imageUri;
+        //     category.images.push({ imageUri })
+        //     await category.save()
+        //     await sleep(2000);
+        // })
+        // category.images.push({ imageUri })
+        // await category.save()
 
         return res.status(200).json({ data: category, msg: 'Category updated.' });
     } catch (err) {
