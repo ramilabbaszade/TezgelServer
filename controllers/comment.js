@@ -1,7 +1,6 @@
 import { MongooseQueryParser } from 'mongoose-query-parser';
 import Comment from '../models/comment.js';
-import { NotAuthorized, BadRequest } from "../utils/errors.js";
-import s3Uploader from '../utils/s3-uploader.js';
+
 
 const parser = new MongooseQueryParser();
 

@@ -1,6 +1,7 @@
 import { MongooseQueryParser } from 'mongoose-query-parser';
 import Category from '../models/category.js';
 import { NotAuthorized, BadRequest } from "../utils/errors.js";
+import { makePinCode } from '../utils/helpers.js';
 import s3Uploader from '../utils/s3-uploader.js';
 
 const parser = new MongooseQueryParser();
@@ -61,7 +62,7 @@ export const createCategory = async (req, res, next) => {
         });
 
         await images.forEach(async (im, i) => {
-            const imageUri = await s3Uploader(im.imageUri, `${title}-${i}.jpg`);
+            const imageUri = await s3Uploader(im.imageUri, `${title}-${makePinCode(4)}-${i}.jpg`);
             category.images.push({ imageUri })
             await category.save()
         })
@@ -112,7 +113,7 @@ export const updateCategory = async (req, res, next) => {
 
         await images.forEach(async (im, i) => {
             const imageUri = !im._id
-                ? await s3Uploader(im.imageUri, `${title}-${i}.jpg`)
+                ? await s3Uploader(im.imageUri, `${title}-${makePinCode(4)}-${i}.jpg`)
                 : im.imageUri;
             category.images.push({ imageUri })
             await category.save()

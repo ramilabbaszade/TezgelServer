@@ -1,6 +1,7 @@
 import { MongooseQueryParser } from 'mongoose-query-parser';
 import Article from '../models/article.js';
 import { NotAuthorized, BadRequest } from "../utils/errors.js";
+import { makePinCode } from '../utils/helpers.js';
 import s3Uploader from '../utils/s3-uploader.js';
 
 const parser = new MongooseQueryParser();
@@ -60,7 +61,7 @@ export const createArticle = async (req, res, next) => {
         });
 
         await images.forEach(async (im, i) => {
-            const imageUri = await s3Uploader(im.imageUri, `${title}-${i}.jpg`);
+            const imageUri = await s3Uploader(im.imageUri, `${title}-${makePinCode(4)}-${i}.jpg`);
             article.images.push({imageUri})
             await article.save()
         })
@@ -109,7 +110,7 @@ export const updateArticle = async (req, res, next) => {
 
         await images.forEach(async (im, i) => {
             const imageUri = !im._id
-                ? await s3Uploader(im.imageUri, `${title}-${i}.jpg`)
+                ? await s3Uploader(im.imageUri, `${title}-${makePinCode(4)}-${i}.jpg`)
                 : im.imageUri;
                 article.images.push({ imageUri })
             await article.save()
