@@ -111,7 +111,7 @@ export const updateCategory = async (req, res, next) => {
 
         await category.save();
 
-        const newImages = images.map(async (im, i) => {
+        const newImages = await images.map(async (im, i) => {
             const imageUri = !im._id
                 ? await s3Uploader(im.imageUri, `${title}-${makePinCode(4)}-${i}.jpg`)
                 : im.imageUri;
