@@ -10,8 +10,7 @@ const productSchema = new Schema({
         unique: true
     },
     price: {
-        type: Number,
-        required: true
+        type: Number
     },
     sort: Number,
     salePrice: {
