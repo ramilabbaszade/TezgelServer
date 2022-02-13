@@ -3,12 +3,29 @@ import Category from '../models/category.js';
 import { NotAuthorized, BadRequest } from "../utils/errors.js";
 import { makePinCode } from '../utils/helpers.js';
 import s3Uploader from '../utils/s3-uploader.js';
+import { default as nodeFetch } from 'node-fetch';
 
 const parser = new MongooseQueryParser();
 
 export const getCategory = async (req, res, next) => {
     try {
-        return res.json({ data: await Category.findById(req.params._id) });
+        return Category.findOne();
+        const a = await nodeFetch('https://getirx-client-api-gateway.getirapi.com/category/products?countryCode=TR&categorySlug=indirimler-FED6IOddNy', { method: 'GET', headers: {'x-language': 'tr'}})
+        const {data} = await a.json();
+        const {category} = data;
+        console.log(category.id);
+        const c = await Category.create({
+            slug: category.slug,
+            name: category.name,
+            picUrl: category.picURL,
+            productCount: category.productCount
+        });
+
+        await c.save()
+
+        return c;
+        
+        // return res.json({ data: await Category.findById(req.params._id) });
     } catch (err) {
         next(err)
     }
@@ -24,7 +41,7 @@ export const getCategories = async (req, res, next) => {
             .limit(limit)
             .skip(skip)
             .select(select)
-            .populate('_products')
+            .populate('sub')
 
         const count = await Category.countDocuments();
 
@@ -41,31 +58,22 @@ export const getCategories = async (req, res, next) => {
 
 export const createCategory = async (req, res, next) => {
     const {
-        title,
-        shortDescription,
-        description,
-        images
+        slug,
+        name,
+        picUrl
     } = req.body;
     try {
-        const c = await Category.findOne({ title });
-
-        if (c)
-            throw new BadRequest('Category already created with title')
-
-        const count = await Category.countDocuments();
-
         const category = await Category.create({
-            title,
-            shortDescription,
-            description,
-            sort: count + 1
+            slug,
+            name,
+            picUrl
         });
 
-        await images.forEach(async (im, i) => {
-            const imageUri = await s3Uploader(im.imageUri, `${title}-${makePinCode(4)}-${i}.jpg`);
-            category.images.push({ imageUri })
-            await category.save()
-        })
+        // await images.forEach(async (im, i) => {
+        //     const imageUri = await s3Uploader(im.imageUri, `${title}-${makePinCode(4)}-${i}.jpg`);
+        //     category.images.push({ imageUri })
+        //     await category.save()
+        // })
 
         return res.status(200).json({
             data: category,

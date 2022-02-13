@@ -1,26 +1,35 @@
 import mongoose from 'mongoose';
+import { productSchema } from './product.js'
 
 const { Schema, model } = mongoose;
 
-
-const categorySchema = new Schema({
-    title: {
+const subCategorySchema = new Schema({
+    slug: {
         type: String,
         required: true,
         unique: true
     },
-    sort: Number,
-    shortDescription: String,
-    description: String,
-    images: [
-        {
-            imageUri: String
-        }
-    ],
-    _products: [{
-        type: Schema.Types.ObjectId,
-        ref: "Product",
-    }]
+    name: {
+        type: String,
+        required: true
+    },
+    productCount: Number,
+    products: [productSchema]
+}, { timestamps: true });
+
+const categorySchema = new Schema({
+    slug: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    name: {
+        type: String,
+        required: true
+    },
+    productCount: Number,
+    picUrl: String,
+    subCategories: [subCategorySchema]
 }, { timestamps: true });
 
 const Category = model('Category', categorySchema);

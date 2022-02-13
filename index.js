@@ -7,10 +7,7 @@ import ejs from 'ejs';
 
 import {
     categoryRoutes,
-    productRoutes,
-    offerRoutes,
-    articleRoutes,
-    commentRoutes
+    productRoutes
 } from './routes/index.js';
 
 import handleErrors from './middlewares/handleErrors.js';
@@ -35,9 +32,6 @@ const URL_PATTERN = '/' + process.env.BACKEND_APP_VERSION;
 
 app.use(URL_PATTERN + '/categories', categoryRoutes);
 app.use(URL_PATTERN + '/products', productRoutes);
-app.use(URL_PATTERN + '/offers', offerRoutes);
-app.use(URL_PATTERN + '/articles', articleRoutes);
-app.use(URL_PATTERN + '/comments', commentRoutes);
 
 app.use(handleErrors);
 
