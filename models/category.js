@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { productSchema } from './product.js'
 
 const { Schema, model } = mongoose;
 
@@ -9,12 +8,16 @@ const subCategorySchema = new Schema({
         required: true,
         unique: true
     },
+    oldId: String,
     name: {
         type: String,
         required: true
     },
     productCount: Number,
-    products: [productSchema]
+    products: [{
+        type: Schema.Types.ObjectId,
+        ref: "Product",
+    }]
 }, { timestamps: true });
 
 const categorySchema = new Schema({
@@ -23,6 +26,7 @@ const categorySchema = new Schema({
         required: true,
         unique: true
     },
+    oldId: String,
     name: {
         type: String,
         required: true

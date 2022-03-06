@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const { Schema } = mongoose;
+const { Schema, model } = mongoose;
 
 
 const productSchema = new Schema({
@@ -19,7 +19,7 @@ const productSchema = new Schema({
     },
     shortDescription: {
         type: String,
-        required: true,
+        required: false,
     },
     status: Number, // 0 idle, 1 publish, 2 trash, 
     description: String,
@@ -35,31 +35,35 @@ const productSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Category",
     }],
+    categoryIds: [String],
+    subCategoryIds: [String],
     _subCategories: [{
         type: Schema.Types.ObjectId,
         ref: "SubCategory",
     }],
-    bundleItems: [new Schema({
-        count: {
-            type: Number,
-            required: true
-        },
-        name: {
-            type: String,
-            required: true,
-        },
-        shortDescription: {
-            type: String,
-            required: true,
-        },
-        picUrl: {
-            type: String,
-            required: true
-        }
-    })]
+    bundleItems: [
+        new Schema({
+            count: {
+                type: Number,
+                required: true
+            },
+            name: {
+                type: String,
+                required: true,
+            },
+            shortDescription: {
+                type: String,
+                required: true,
+            },
+            picUrl: {
+                type: String,
+                required: true
+            }
+        })
+    ]
 }, { timestamps: true });
 
 
-export {
-    productSchema
-}
+const Product = model('Product', productSchema);
+
+export default Product;

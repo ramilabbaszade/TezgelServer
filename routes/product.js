@@ -1,16 +1,11 @@
 import express from 'express';
-// import {
-//     createProduct,
-//     getProduct,
-//     getProducts,
-//     updateProduct,
-//     deleteProducts,
-//     updateProducts
-// } from '../controllers/product.js';
+import {
+    getProducts,
+} from '../controllers/product.js';
 
 const router = express.Router();
 
-// router.get('/', getProducts)
+router.get('/', getProducts)
 
 // router.get('/:_id', getProduct)
 
