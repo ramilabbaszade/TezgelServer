@@ -93,10 +93,44 @@ export const generateShipmentBarcode = box => {
 }
 
 export const validURL = (str) => {
-  var pattern = new RegExp('^(http|https)://','i');
+  var pattern = new RegExp('^(http|https)://', 'i');
   return !!pattern.test(str);
 }
 
 export const sleep = (ms) => {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export const calculateCartCost = async (cart) => {
+  return new Promise(res => {
+    let newTotal = 0;
+    cart.forEach(cartItem => {
+      newTotal += cartItem._product.price * cartItem.qty
+    })
+    res(newTotal);
+  })
+}
+
+export const calculateDeliveryCost = async (cartTotal) => {
+  return new Promise(res => {
+    if (cartTotal === 0) res(0);
+    const deliveryCostSettingsSample = [
+      {
+        cost: 3.99,
+        limit: 9.99
+      },
+      {
+        cost: 1.99,
+        limit: 19.99
+      },
+      {
+        cost: 0,
+        limit: 30
+      }
+    ]
+    deliveryCostSettingsSample.forEach(c => {
+      if (cartTotal <= c.limit) res(c.cost)
+      else res(0)
+    })
+  })
 }

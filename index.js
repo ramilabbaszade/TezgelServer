@@ -6,13 +6,17 @@ import dotenv from 'dotenv';
 import ejs from 'ejs';
 
 import {
+    addressRoutes,
+    cartRoutes,
     categoryRoutes,
+    orderRoutes,
     productRoutes
 } from './routes/index.js';
 
 import handleErrors from './middlewares/handleErrors.js';
 
 import { __dirname } from './constants.js';
+import authToken from './middlewares/authToken.js';
 
 
 const app = express();
@@ -32,6 +36,10 @@ const URL_PATTERN = '/' + process.env.BACKEND_APP_VERSION;
 
 app.use(URL_PATTERN + '/categories', categoryRoutes);
 app.use(URL_PATTERN + '/products', productRoutes);
+
+app.use(URL_PATTERN + '/cart', authToken, cartRoutes);
+app.use(URL_PATTERN + '/order', authToken, orderRoutes);
+app.use(URL_PATTERN + '/address', authToken, addressRoutes);
 
 app.use(handleErrors);
 

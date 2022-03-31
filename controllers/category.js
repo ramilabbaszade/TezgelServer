@@ -10,8 +10,8 @@ export const getCategories = async (req, res, next) => {
 
     try {
         const categories = await Category.find()
-
-        console.log(categories)
+        
+        
         
         return res.json({
             categories,

@@ -35,8 +35,6 @@ const productSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Category",
     }],
-    categoryIds: [String],
-    subCategoryIds: [String],
     _subCategories: [{
         type: Schema.Types.ObjectId,
         ref: "SubCategory",

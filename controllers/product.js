@@ -6,8 +6,8 @@ const parser = new MongooseQueryParser();
 
 export const getProducts = async (req, res, next) => {
     try {
-        
-        const { categorySlug, subCategorySlug } = req.query
+
+        const { categorySlug } = req.query
 
         const category = await Category.findOne({slug: categorySlug});
         const products = await Product.find({_categories: category._id});
