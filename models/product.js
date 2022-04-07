@@ -21,7 +21,11 @@ const productSchema = new Schema({
         type: String,
         required: false,
     },
-    status: Number, // 0 idle, 1 publish, 2 trash, 
+    status: {
+        type: String,
+        enum: ['publish', 'trash', 'inactive'],
+        default: 'inactive'
+    },
     description: String,
     price: {
         required: true,

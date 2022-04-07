@@ -1,5 +1,7 @@
+import Address from '../models/address.js';
 import Cart from '../models/cart.js';
-import { NotAuthorized } from '../utils/errors.js';
+import Warehouse from '../models/warehouse.js';
+import { BadRequest, NotAuthorized } from '../utils/errors.js';
 
 export const updateCart = async (req, res, next) => {
     try {
@@ -7,6 +9,22 @@ export const updateCart = async (req, res, next) => {
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
         
         const {cartItem} = req.body;
+        
+        const address = await Address.findOne({isDefault: true, userId: auth.user_id})
+
+        if (!address) throw new BadRequest('Ünvanın seçilməyi zəruridir.')
+
+        const warehouse = await Warehouse.find({location: {  $near: {
+            $geometry:{ 
+                type: "Point", 
+                coordinates: address.location.coordinates
+            },
+            $maxDistance: 50000,
+        }}})
+
+        // check warehouse.stocks to 
+
+        console.log(warehouse)
 
         const cart = await Cart.findOne({userId: auth.user_id, _product: cartItem._product});
 
@@ -34,7 +52,7 @@ export const deleteCart = async (req,res,next) => {
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
 
-        await Cart.remove({userId: auth.user_id});
+        await Cart.deleteMany({userId: auth.user_id});
 
         return res.json({status: 'success'})
     } catch (error) {

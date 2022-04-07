@@ -1,41 +1,91 @@
 import Address from '../models/address.js';
-import { NotAuthorized } from '../utils/errors.js';
+import { NotAuthorized, BadRequest } from '../utils/errors.js';
 
 
 export const createAddress = async (req, res, next) => {
     try {
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
-        
-        const {coordinates, name, directions} = req.body;
+
+        const { coordinates, name, directions } = req.body;
 
         // TODO
         // En yaxin warehouse ile compare edilmelidi. Misal ucun 50km uzaqdirsa error verilmelidi.
         // 50 KM variable kimi settings modelda olmalidi. admin panelden editable
 
+        const defaultAddress = await Address.findOne({ userId: auth.user_id, isDefault: true });
+
+        if (defaultAddress) {
+            defaultAddress.isDefault = false;
+            await defaultAddress.save();
+        }
+
         const address = await Address.create({
             userId: auth.user_id,
-            location: {coordinates}, 
-            name, 
-            directions
+            location: { coordinates },
+            name,
+            phoneNumber: '0502025040',
+            directions,
+            isDefault: true
         })
 
         await address.save();
 
-        return res.json({status: 'success', address, msg: 'Ünvan uğurla artırıldı.'})
+        return res.json({ status: 'success', address, msg: 'Ünvan uğurla artırıldı.' })
     } catch (error) {
         next(error)
     }
 }
 
 
+export const putAddress = async (req, res, next) => {
+    try {
+        const auth = req.currentUser;
+        if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
+        const { defaultAddressId } = req.body;
+        const defaultAddress = await Address.findOne({ userId: auth.user_id, isDefault: true });
+        if (defaultAddress) {
+            defaultAddress.isDefault = false;
+            await defaultAddress.save();
+        }
+        const newDefaultAddress = await Address.findOne({ _id: defaultAddressId });
+        
+        newDefaultAddress.isDefault = true;
+        await newDefaultAddress.save();
+        return res.json({ status: 'success', msg: 'Ünvan uğurla dəyişdirildi.'})
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+export const removeAddress = async (req, res, next) => {
+    try {
+        const auth = req.currentUser;
+        if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
+        const {addressId} = req.body;
+
+        const address = await Address.findOne({_id: addressId})
+
+        if (address.isDefault) throw new BadRequest('Seçili ünvan silinə bilməz.');
+
+        address.isInActive = true;
+
+        await address.save();
+
+        return res.json({ status: 'success', msg: 'Ünvan uğurla silindi.' })
+    } catch (error) {
+        next(error)
+    }
+}
+
 
 export const getAddresses = async (req, res, next) => {
     try {
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
-        
-        return res.json({status: 'success'})
+        const addresses = await Address.find({ userId: auth.user_id, isInActive: false });
+        return res.json({ status: 'success', addresses })
     } catch (error) {
         next(error)
     }

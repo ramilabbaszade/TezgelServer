@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import {pointSchema} from '../utils/schemas.js'
+import { pointSchema } from '../utils/schemas.js'
 
 const { Schema, model } = mongoose;
 
@@ -13,6 +13,15 @@ const addressSchema = new Schema({
         type: String,
         required: true
     },
+    isDefault: {
+        type: Boolean,
+        default: false
+    },
+    phoneNumber: String,
+    isInActive: {
+        type: Boolean,
+        default: false
+    },
     icon: {
         type: String,
         enum: ['home', 'business', 'other'],
@@ -21,7 +30,8 @@ const addressSchema = new Schema({
     directions: String,
     location: {
         type: pointSchema,
-        required: true
+        required: true,
+        // index: '2d'
     }
 
 }, { timestamps: true });

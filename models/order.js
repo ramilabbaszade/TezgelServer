@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import orderStates from '../data/orderStates.js';
+import { pointSchema } from '../utils/schemas.js';
 
 const { Schema, model } = mongoose;
 
@@ -25,6 +26,11 @@ const orderSchema = new Schema({
             ref: "Product",
         }
     })],
+    type: {
+        type: String,
+        enum: ['market', 'taxi', 'restaurant'],
+        default: 'market'
+    },
     state: {
         type: String,
         enum: orderStates,
@@ -52,10 +58,19 @@ const orderSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Courier",
     },
-    _address: {
+    _warehouse: {
         type: Schema.Types.ObjectId,
-        ref: "Address",
-    }
+        ref: "Warehouse",
+    },
+    address: new Schema({
+        name: String,
+        directions: String,
+        phoneNumber: String,
+        location: {
+            type: pointSchema,
+            required: true
+        }
+    })
 }, { timestamps: true });
 
 

@@ -49,9 +49,7 @@ const PORT = process.env.PORT || 5002;
 
 const OPTIONS = {
     useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-    useFindAndModify: false
+    useUnifiedTopology: true
 }
 
 mongoose.connect(CONNECTION_URL, OPTIONS)
