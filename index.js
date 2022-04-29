@@ -7,10 +7,12 @@ import ejs from 'ejs';
 
 import {
     addressRoutes,
+    authRoutes,
     cartRoutes,
     categoryRoutes,
     orderRoutes,
-    productRoutes
+    productRoutes,
+    searchRoutes
 } from './routes/index.js';
 
 import handleErrors from './middlewares/handleErrors.js';
@@ -34,6 +36,9 @@ app.engine('html', ejs.renderFile);
 
 const URL_PATTERN = '/' + process.env.BACKEND_APP_VERSION;
 
+app.use(URL_PATTERN + '/auth', authToken, authRoutes);
+
+app.use(URL_PATTERN + '/search', authToken, searchRoutes);
 app.use(URL_PATTERN + '/categories', categoryRoutes);
 app.use(URL_PATTERN + '/products', productRoutes);
 

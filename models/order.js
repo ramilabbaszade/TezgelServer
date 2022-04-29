@@ -6,9 +6,9 @@ const { Schema, model } = mongoose;
 
 
 const orderSchema = new Schema({
-    userId: {
-        type: String,
-        required: true
+    _user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
     },
     note: String,
     leftDoor: {
@@ -52,7 +52,8 @@ const orderSchema = new Schema({
         isPaid: {
             type: Boolean,
             default: false
-        }
+        },
+        
     }),
     _courier: {
         type: Schema.Types.ObjectId,

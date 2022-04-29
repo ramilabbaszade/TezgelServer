@@ -13,7 +13,7 @@ export const createAddress = async (req, res, next) => {
         // En yaxin warehouse ile compare edilmelidi. Misal ucun 50km uzaqdirsa error verilmelidi.
         // 50 KM variable kimi settings modelda olmalidi. admin panelden editable
 
-        const defaultAddress = await Address.findOne({ userId: auth.user_id, isDefault: true });
+        const defaultAddress = await Address.findOne({ _user: auth._user, isDefault: true });
 
         if (defaultAddress) {
             defaultAddress.isDefault = false;
@@ -21,7 +21,7 @@ export const createAddress = async (req, res, next) => {
         }
 
         const address = await Address.create({
-            userId: auth.user_id,
+            _user: auth._user,
             location: { coordinates },
             name,
             phoneNumber: '0502025040',
@@ -43,7 +43,7 @@ export const putAddress = async (req, res, next) => {
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
         const { defaultAddressId } = req.body;
-        const defaultAddress = await Address.findOne({ userId: auth.user_id, isDefault: true });
+        const defaultAddress = await Address.findOne({ _user: auth._user, isDefault: true });
         if (defaultAddress) {
             defaultAddress.isDefault = false;
             await defaultAddress.save();
@@ -84,7 +84,7 @@ export const getAddresses = async (req, res, next) => {
     try {
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
-        const addresses = await Address.find({ userId: auth.user_id, isInActive: false });
+        const addresses = await Address.find({ _user: auth._user, isInActive: false });
         return res.json({ status: 'success', addresses })
     } catch (error) {
         next(error)

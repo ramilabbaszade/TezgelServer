@@ -19,12 +19,10 @@ const warehouseSchema = new Schema({
         enum: ['primary', 'market', 'restaurant'],
         default: 'primary'
     },
-    maxDistance: Number, // 20 km
-    minCartTotal: Number, // exp 5
+    minCartTotal: Number,
     location: {
         type: pointSchema,
-        required: true,
-        // index: '2d'
+        required: true
     },
     stocks: [new Schema({
         qty: Number,
@@ -36,7 +34,7 @@ const warehouseSchema = new Schema({
 }, { timestamps: true });
 
 
-const warehouse = model('warehouse', warehouseSchema);
+const Warehouse = model('Warehouse', warehouseSchema);
 
 
-export default warehouse;
+export default Warehouse;

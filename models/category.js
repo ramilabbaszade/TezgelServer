@@ -8,16 +8,14 @@ const subCategorySchema = new Schema({
         required: true,
         unique: true
     },
-    oldId: String,
     name: {
         type: String,
         required: true
     },
-    productCount: Number,
-    products: [{
-        type: Schema.Types.ObjectId,
-        ref: "Product",
-    }]
+    // products: [{
+    //     type: Schema.Types.ObjectId,
+    //     ref: "Product",
+    // }]
 }, { timestamps: true });
 
 const categorySchema = new Schema({
@@ -26,12 +24,10 @@ const categorySchema = new Schema({
         required: true,
         unique: true
     },
-    oldId: String,
     name: {
         type: String,
         required: true
     },
-    productCount: Number,
     picUrl: String,
     subCategories: [subCategorySchema]
 }, { timestamps: true });

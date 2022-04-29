@@ -10,7 +10,7 @@ export const updateCart = async (req, res, next) => {
         
         const {cartItem} = req.body;
         
-        const address = await Address.findOne({isDefault: true, userId: auth.user_id})
+        const address = await Address.findOne({isDefault: true, _user: auth._user})
 
         if (!address) throw new BadRequest('Ünvanın seçilməyi zəruridir.')
 
@@ -22,11 +22,7 @@ export const updateCart = async (req, res, next) => {
             $maxDistance: 50000,
         }}})
 
-        // check warehouse.stocks to 
-
-        console.log(warehouse)
-
-        const cart = await Cart.findOne({userId: auth.user_id, _product: cartItem._product});
+        const cart = await Cart.findOne({_user: auth._user, _product: cartItem._product});
 
         if (!cart) {
             const cItem = await Cart.create(cartItem);
@@ -40,7 +36,6 @@ export const updateCart = async (req, res, next) => {
             }
         }
 
-
         return res.json({status: 'success'})
     } catch (error) {
         next(error)
@@ -52,7 +47,7 @@ export const deleteCart = async (req,res,next) => {
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
 
-        await Cart.deleteMany({userId: auth.user_id});
+        await Cart.deleteMany({_user: auth._user});
 
         return res.json({status: 'success'})
     } catch (error) {
@@ -67,7 +62,7 @@ export const getCart = async (req, res, next) => {
     
         const select = '_id shortName struckPrice price shortDescription picUrls'
 
-        const cart = await Cart.find({userId: auth.user_id}).populate({
+        const cart = await Cart.find({_user: auth._user}).populate({
             path: '_product',
             model: 'Product',
             select

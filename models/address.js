@@ -5,9 +5,9 @@ const { Schema, model } = mongoose;
 
 
 const addressSchema = new Schema({
-    userId: {
-        type: String,
-        required: true
+    _user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
     },
     name: {
         type: String,
