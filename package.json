@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon api-3002.js"
   },
   "author": "Ismail Aras",
   "license": "ISC",
