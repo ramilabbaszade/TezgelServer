@@ -5,6 +5,7 @@ import orderRoutes from './order.js';
 import addressRoutes from './address.js'
 import searchRoutes from './search.js'
 import authRoutes from './auth.js';
+import ticketRoutes from './ticket.js'
 
 export {
     categoryRoutes,
@@ -13,5 +14,6 @@ export {
     orderRoutes,
     addressRoutes,
     searchRoutes,
-    authRoutes
+    authRoutes,
+    ticketRoutes
 }

@@ -12,7 +12,8 @@ import {
     categoryRoutes,
     orderRoutes,
     productRoutes,
-    searchRoutes
+    searchRoutes,
+    ticketRoutes
 } from './routes/index.js';
 
 import handleErrors from './middlewares/handleErrors.js';
@@ -45,6 +46,7 @@ app.use(URL_PATTERN + '/products', productRoutes);
 app.use(URL_PATTERN + '/cart', authToken, cartRoutes);
 app.use(URL_PATTERN + '/order', authToken, orderRoutes);
 app.use(URL_PATTERN + '/address', authToken, addressRoutes);
+app.use(URL_PATTERN + '/tickets', authToken, ticketRoutes);
 
 app.use(handleErrors);
 

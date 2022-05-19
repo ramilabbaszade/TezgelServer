@@ -47,6 +47,8 @@ export const search = async (req, res, next) => {
 
         const Entity = getEntity(entity)
 
+        // TODO: _user should be added to filter object for auth needing entities
+
         const count = await Entity.find(filter).count()
 
         const data = await Entity.find(filter)

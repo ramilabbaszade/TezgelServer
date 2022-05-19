@@ -119,3 +119,19 @@ export const createOrder = async (req, res, next) => {
         next(error)
     }
 }
+
+
+
+export const updateOrder = async (req, res, next) => {
+    try {
+        const auth = req.currentUser;
+        if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
+
+        const { _id, note, leftDoor, dontRing } = req.body;
+       
+        await Order.findOneAndUpdate({_id}, {note, leftDoor, dontRing})
+        return res.json({ status: 'success' })
+    } catch (error) {
+        next(error)
+    }
+}
