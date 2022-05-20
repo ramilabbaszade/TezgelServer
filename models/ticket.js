@@ -16,6 +16,10 @@ const ticketSchema = new Schema({
         isSelf: {
             type: Boolean,
             default: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
         }
     })],
     subject: {
