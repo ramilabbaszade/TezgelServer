@@ -13,7 +13,7 @@ export const getTickets = async (req, res, next) => {
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
 
     try {
-        const tickets = await Ticket.find({'user.id': auth._user})
+        const tickets = await Ticket.find({'_user': auth._user})
 
         return res.json({
             tickets,
@@ -30,21 +30,23 @@ export const createTicket = async (req, res, next) => {
     if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
 
     const {
-        newMessage,
-        subject
+        message,
+        subject,
     } = req.body;
 
 
     try {
         const ticket = await Ticket.create({
-            messages: [newMessage],
+            messages: [{
+                text: message
+            }],
             subject,
             _user: auth._user
         })
 
         await ticket.save();
 
-        return res.json({ status: 'success' })
+        return res.json({ ticket, status: 'success' })
 
     } catch (err) {
         console.log(err.message)
@@ -66,11 +68,13 @@ export const sendMessage = async (req, res, next) => {
 
     try {
         let ticket = await Ticket.findById(_ticket)
+        console.log(ticket._user, auth._user)
+        if (!ticket || ticket._user != auth._user)
+            throw new BadRequest('Müraciət tapılmadı')
 
-        if (!ticket || ticket._user !== auth._user)
-            return new BadRequest('Müraciət tapılmadı')
-
-        ticket.messages.push(newMessage)
+        ticket.messages.push({
+            text: newMessage
+        })
 
         await ticket.save();
 
