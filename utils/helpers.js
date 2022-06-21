@@ -1,3 +1,7 @@
+import Stock from "../models/stock.js";
+import Warehouse from "../models/warehouse.js";
+import Product from "../models/product.js";
+
 export const makePinCode = (length, numeric = false) => {
   var result = '';
   var characters = numeric ? '0123456789' : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -152,4 +156,57 @@ export function calcCrow(lat1, lon1, lat2, lon2) {
   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   var d = R * c;
   return d;
+}
+
+
+export const addStock = async ({
+  _product,
+  _warehouse,
+  _supplier,
+  _cashbox,
+  buyAmount,
+  buyPrice,
+  buyDiscount,
+  saleAmount,
+  salePrice,
+  saleDiscount,
+  qty
+}) => {
+  const newStock = await Stock.create({
+      _product,
+      _warehouse,
+      _supplier,
+      _cashbox,
+      buyAmount,
+      buyPrice,
+      buyDiscount,
+      saleAmount,
+      salePrice,
+      saleDiscount,
+      qty
+  });
+
+  const warehouse = await Warehouse.findById(_warehouse);
+  const product = await Product.findById(_product);
+
+  const alreadyAddedProduct = warehouse.stocks?.find(s => s._product == _product);
+  if (alreadyAddedProduct) {
+      warehouse.stocks = warehouse.stocks.map(s => s._product == _product 
+          ? ({_product, qty: s.qty + qty}) 
+          : s)
+      product.inStock = product.inStock.map(s => s._warehouse == _warehouse 
+          ? ({_warehouse, qty: s.qty + qty}) 
+          : s)
+  }
+  else {
+      warehouse.stocks.push({_product, qty})
+      product.inStock.push({_warehouse, qty})
+  }
+  
+
+  await newStock.save()
+  await warehouse.save()
+  await product.save()
+
+  return newStock;
 }

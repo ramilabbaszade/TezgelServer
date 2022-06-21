@@ -1,7 +1,7 @@
 import express from 'express';
 import {
     createTicket, getTickets, sendMessage
-} from '../controllers/ticket';
+} from '../controllers/ticket.js';
 
 const router = express.Router();
 

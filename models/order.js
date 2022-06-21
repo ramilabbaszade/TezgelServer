@@ -53,7 +53,12 @@ const orderSchema = new Schema({
             type: Boolean,
             default: false
         },
-        
+        method: {
+            type: String,
+            enum: ['card', 'cash'],
+            default: 'cash'
+        },
+        paymesOrderId: String
     }),
     _courier: {
         type: Schema.Types.ObjectId,

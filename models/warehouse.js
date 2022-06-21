@@ -19,17 +19,17 @@ const warehouseSchema = new Schema({
         enum: ['primary', 'market', 'restaurant'],
         default: 'primary'
     },
-    minCartTotal: Number,
+    minCartTotal: Number, // exp 5
     location: {
         type: pointSchema,
         required: true
     },
     stocks: [new Schema({
-        qty: Number,
         _product: {
             type: Schema.Types.ObjectId,
             ref: "Product",
-        }
+        },
+        qty: Number
     })],
 }, { timestamps: true });
 

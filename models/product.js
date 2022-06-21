@@ -43,6 +43,13 @@ const productSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "SubCategory",
     }],
+    inStock: [new Schema({
+        _warehouse: {
+            type: Schema.Types.ObjectId,
+            ref: "Warehouse",
+        },
+        qty: Number
+    })],
     bundleItems: [
         new Schema({
             count: {

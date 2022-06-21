@@ -6,6 +6,8 @@ import Warehouse from "../models/warehouse.js";
 import { NotAuthorized, NotFound, BadRequest } from '../utils/errors.js';
 import { calculateDeliveryCost, calculateCartCost } from "../utils/helpers.js";
 import { price } from "../utils/format.js";
+import User from '../models/user.js'
+import createPaymesPayment from "../utils/paymes.js";
 
 export const getOrder = async (req, res, next) => {
     try {
@@ -91,30 +93,37 @@ export const createOrder = async (req, res, next) => {
         if (cartCost <= warehouse.minCartTotal)
             throw new BadRequest(`Minimum səbət dəyəri: ${price(warehouse.minCartTotal)}. Sifariş vermək üçün səbətinizə ${price(warehouse.minCartTotal - cartCost + 0.01)} dəyərində məhsul artırın.`)
 
-        // Kart ile odenish burda olacaq.   
-        // En yaxin idle couriere attach olunacaq eger yoxdursa olmayacaq
-
-        const order = await Order.create({
-            _user: auth._user,
-            note,
-            leftDoor,
-            address,
-            dontRing,
-            cart,
-            _warehouse: warehouse._id,
-            payment: {
-                cartCost,
-                deliveryCost,
-                totalCost
+        if (paymentMethod === 'card') {
+            try {
+                const user = await User.findById(auth._user);
+                const response = await createPaymesPayment({
+                    productPrice: totalCost,
+                    productName: 'Tezgel sifariş',
+                    firstName: user.displayName,
+                    lastName: ' ',
+                    email: 'info@tezgel.az'
+                })
+                if (response.url) {
+                    await createOrder1({
+                        auth, note, leftDoor, address, dontRing,
+                        state: 'cancelled',
+                        method: paymentMethod,
+                        cart, warehouse, cartCost, deliveryCost, totalCost, paymesOrderId: response.orderId, isPaid: false
+                    });
+                    return res.json({ status: 'success', url: response.url })
+                } else {
+                    return res.json({ status: 'error', msg: 'Ödəniş uğurlu olmadı.' })
+                }
+            } catch (error) {
+                return res.json({ status: 'error', msg: 'Ödəniş uğurlu olmadı.' })
             }
-        })
-        await order.save()
-
-        await Cart.deleteMany({ _user: auth._user });
-
-        return paymentMethod === 'cash'
-            ? res.json({ status: 'success', order, popup: popups['create_order'] })
-            : res.json({ status: 'success', html: 'Paymes 3ds html code' })
+        } else {
+            const order = await createOrder1({
+                auth, note, leftDoor, method: paymentMethod, address, dontRing,
+                cart, warehouse, cartCost, deliveryCost, totalCost, paymesOrderId, isPaid: false
+            });
+            return res.json({ status: 'success', order, popup: popups['create_order'] });
+        }
     } catch (error) {
         next(error)
     }
@@ -122,16 +131,66 @@ export const createOrder = async (req, res, next) => {
 
 
 
+
+export const paymesReturn = async (req, res, next) => {
+    try {
+
+        const { orderId, status } = req.body;
+
+        if (status === 'PAYMENT_ERROR') {
+            await Order.deleteOne({ 'payment.paymesOrderId': orderId });
+            // return error html
+        }
+
+        const order = await Order.findOne({ 'payment.paymesOrderId': orderId })
+        order.isPaid = true
+        order.state = 'created'
+        order.save()
+
+
+        // return success html
+    } catch (error) {
+        next(error)
+    }
+}
+
 export const updateOrder = async (req, res, next) => {
     try {
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
 
         const { _id, note, leftDoor, dontRing } = req.body;
-       
-        await Order.findOneAndUpdate({_id}, {note, leftDoor, dontRing})
+
+        await Order.findOneAndUpdate({ _id }, { note, leftDoor, dontRing })
         return res.json({ status: 'success' })
     } catch (error) {
         next(error)
     }
+}
+
+async function createOrder1({ auth, note, leftDoor, address, paymentMethod, dontRing, cart, warehouse,
+    state,
+    cartCost, deliveryCost, totalCost, isPaid, paymesOrderId }) {
+    const order = await Order.create({
+        _user: auth._user,
+        note,
+        state,
+        leftDoor,
+        address,
+        dontRing,
+        cart,
+        _warehouse: warehouse._id,
+        payment: {
+            cartCost,
+            deliveryCost,
+            totalCost,
+            isPaid,
+            method: paymentMethod
+        }
+    });
+
+    await order.save();
+
+    !paymesOrderId && await Cart.deleteMany({ _user: auth._user });
+    return order;
 }
