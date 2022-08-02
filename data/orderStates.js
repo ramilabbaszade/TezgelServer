@@ -4,5 +4,6 @@ export default [
     'on-way',
     'at-address',
     'cancelled',
-    'delivered'
+    'delivered',
+    'hot'
 ]

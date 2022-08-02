@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <title>Ödəniş | Tezgel</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-4 offset-md-4">
+            <div class="text-success text-center mt-3">
+                <i class="fa fa-check-square" aria-hidden="true" style="font-size: 120px"></i>
+            </div>
+            <div class="alert alert-info">
+                Sizin ödənişiniz uğurlu oldu.<br>
+                <small>5 saniyə sonra bu pəncərə bağlanacaq.</small>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    window.parent.postMessage('success', "*");
+</script>
+</body>
+</html>

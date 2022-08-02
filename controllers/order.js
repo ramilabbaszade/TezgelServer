@@ -8,6 +8,7 @@ import { calculateDeliveryCost, calculateCartCost } from "../utils/helpers.js";
 import { price } from "../utils/format.js";
 import User from '../models/user.js'
 import createPaymesPayment from "../utils/paymes.js";
+import path from 'path'
 
 export const getOrder = async (req, res, next) => {
     try {
@@ -139,16 +140,16 @@ export const paymesReturn = async (req, res, next) => {
 
         if (status === 'PAYMENT_ERROR') {
             await Order.deleteOne({ 'payment.paymesOrderId': orderId });
-            // return error html
+            return res.sendFile(path.join(__dirname, '/views/payment_return_error.html'));
         }
 
         const order = await Order.findOne({ 'payment.paymesOrderId': orderId })
         order.isPaid = true
         order.state = 'created'
         order.save()
+        await Cart.deleteMany({ _user: order._user })
 
-
-        // return success html
+        return res.sendFile(path.join(__dirname, '/views/payment_return_success.html'));
     } catch (error) {
         next(error)
     }
