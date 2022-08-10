@@ -121,7 +121,7 @@ export const createOrder = async (req, res, next) => {
         } else {
             const order = await createOrder1({
                 auth, note, leftDoor, method: paymentMethod, address, dontRing,
-                cart, warehouse, cartCost, deliveryCost, totalCost, paymesOrderId, isPaid: false
+                cart, warehouse, cartCost, deliveryCost, totalCost, isPaid: false
             });
             return res.json({ status: 'success', order, popup: popups['create_order'] });
         }
