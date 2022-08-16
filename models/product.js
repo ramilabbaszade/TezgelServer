@@ -26,6 +26,10 @@ const productSchema = new Schema({
         enum: ['publish', 'trash', 'inactive'],
         default: 'publish'
     },
+    isReferCodeActive:{
+        type:Boolean,
+        default:false
+    },
     description: String,
     price: {
         required: true,

@@ -95,10 +95,9 @@ export const updateUser = async (req, res, next) => {
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
 
-        const { displayName } = req.body;
+        const { displayName, referrerId } = req.body;
 
-        await User.updateOne({_id: auth._user}, {displayName})
-
+        await User.updateOne({_id: auth._user}, {displayName, referrerId})
         
         return res.json({status: 'success'})
     } catch (error) {

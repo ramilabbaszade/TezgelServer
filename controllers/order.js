@@ -9,6 +9,7 @@ import { price } from "../utils/format.js";
 import User from '../models/user.js'
 import createPaymesPayment from "../utils/paymes.js";
 import path from 'path'
+import Referrer from "../models/referrer.js";
 
 export const getOrder = async (req, res, next) => {
     try {
@@ -61,7 +62,7 @@ export const createOrder = async (req, res, next) => {
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
 
-        const { note, leftDoor, dontRing, paymentMethod, address } = req.body;
+        const { note, leftDoor, dontRing, paymentMethod, address, referrerValues } = req.body;
 
         if (!address) throw new BadRequest('Ünvanın seçilməyi zəruridir.')
 
@@ -109,7 +110,8 @@ export const createOrder = async (req, res, next) => {
                         auth, note, leftDoor, address, dontRing,
                         state: 'cancelled',
                         method: paymentMethod,
-                        cart, warehouse, cartCost, deliveryCost, totalCost, paymesOrderId: response.orderId, isPaid: false
+                        cart, warehouse, cartCost, deliveryCost, totalCost, paymesOrderId: response.orderId, isPaid: false,
+                        referrerValues
                     });
                     return res.json({ status: 'success', url: response.url })
                 } else {
@@ -121,7 +123,8 @@ export const createOrder = async (req, res, next) => {
         } else {
             const order = await createOrder1({
                 auth, note, leftDoor, method: paymentMethod, address, dontRing,
-                cart, warehouse, cartCost, deliveryCost, totalCost, isPaid: false
+                cart, warehouse, cartCost, deliveryCost, totalCost, isPaid: false,
+                referrerValues
             });
             return res.json({ status: 'success', order, popup: popups['create_order'] });
         }
@@ -171,7 +174,7 @@ export const updateOrder = async (req, res, next) => {
 
 async function createOrder1({ auth, note, leftDoor, address, paymentMethod, dontRing, cart, warehouse,
     state,
-    cartCost, deliveryCost, totalCost, isPaid, paymesOrderId }) {
+    cartCost, deliveryCost, totalCost, isPaid, paymesOrderId, referrerValues }) {
     const order = await Order.create({
         _user: auth._user,
         note,
@@ -191,6 +194,17 @@ async function createOrder1({ auth, note, leftDoor, address, paymentMethod, dont
     });
 
     await order.save();
+
+    // Bura isUsedReferrerCode , referrerValues, order._id, referrerValues
+    const {id, activeReferProductsTotalPrice} = referrerValues
+    await User.updateOne({_id: auth._user}, {isUsedReferrerCode: true})
+    await Referrer.updateOne({_id: id}, {
+        $push: {
+            orders: {
+                orderId: order._id, activeReferProductsTotalPrice
+            }
+        }
+    })
 
     !paymesOrderId && await Cart.deleteMany({ _user: auth._user });
     return order;

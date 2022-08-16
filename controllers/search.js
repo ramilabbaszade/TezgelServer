@@ -6,6 +6,7 @@ import { NotAuthorized, NotFound, BadRequest } from '../utils/errors.js';
 import Setting from '../models/setting.js';
 import New from '../models/new.js'
 import Campaign from '../models/campaign.js'
+import Referrer from "../models/referrer.js";
 
 
 const getEntity = (entity) => {
@@ -24,6 +25,8 @@ const getEntity = (entity) => {
             return New
         case 'campaign':
             return Campaign
+        case 'referrer':
+            return Referrer
         default:
             throw new BadRequest('Entity not found!')
     }

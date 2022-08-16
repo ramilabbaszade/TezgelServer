@@ -60,7 +60,7 @@ export const getCart = async (req, res, next) => {
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
     
-        const select = '_id shortName struckPrice price shortDescription picUrls'
+        const select = '_id shortName struckPrice price shortDescription picUrls isReferCodeActive'
 
         const cart = await Cart.find({_user: auth._user}).populate({
             path: '_product',
