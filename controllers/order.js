@@ -195,16 +195,22 @@ async function createOrder1({ auth, note, leftDoor, address, paymentMethod, dont
 
     await order.save();
 
-    // Bura isUsedReferrerCode , referrerValues, order._id, referrerValues
+    let user = await User.findById(auth._user)
+
     const {id, activeReferProductsTotalPrice} = referrerValues
-    await User.updateOne({_id: auth._user}, {isUsedReferrerCode: true})
-    await Referrer.updateOne({_id: id}, {
-        $push: {
-            orders: {
-                orderId: order._id, activeReferProductsTotalPrice
-            }
+
+    if(!user.isUsedReferrerCode){
+        if(activeReferProductsTotalPrice > 0){
+            await User.updateOne({_id: auth._user}, {isUsedReferrerCode: true})
+            await Referrer.updateOne({_id: id}, {
+                $push: {
+                    orders: {
+                        orderId: order._id, activeReferProductsTotalPrice
+                    }
+                }
+            })
         }
-    })
+    }
 
     !paymesOrderId && await Cart.deleteMany({ _user: auth._user });
     return order;
