@@ -2,7 +2,7 @@ import Order from '../models/order.js';
 import Product from '../models/product.js';
 import Courier from '../models/courier.js'
 import Warehouse from '../models/warehouse.js';
-import { NotAuthorized, NotFound, BadRequest } from '../utils/errors.js';
+import { NotAuthorized, BadRequest } from '../utils/errors.js';
 import Setting from '../models/setting.js';
 import New from '../models/new.js'
 import Campaign from '../models/campaign.js'
@@ -55,7 +55,15 @@ export const search = async (req, res, next) => {
         const count = await Entity.find(filter).count()
 
         const data = await Entity.find(filter)
-            .select(select).populate(populate).limit(limit).skip(skip).sort(sort)
+            .select(select).limit(limit).skip(skip).sort(sort)
+
+        if(Array.isArray(populate)){
+            populate.forEach(p=>{
+                data.populate(p)
+            })
+        }else{
+            data.populate(populate)
+        }
 
         return res.json({ status: 'success', data, filter, select, populate, limit, skip, count, sort })
     } catch (error) {
