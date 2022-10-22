@@ -62,7 +62,7 @@ export const createOrder = async (req, res, next) => {
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
 
-        const { note, leftDoor, dontRing, paymentMethod, address, referrerValues } = req.body;
+        const { note, leftDoor, dontRing, paymentMethod, address, referrerValues,deliveryCost } = req.body;
 
         if (!address) throw new BadRequest('Ünvanın seçilməyi zəruridir.')
 
@@ -74,7 +74,7 @@ export const createOrder = async (req, res, next) => {
 
 
         const cartCost = await calculateCartCost(cart);
-        const deliveryCost = await calculateDeliveryCost(cartCost);
+        // const deliveryCost = deliveryCost || calculateDeliveryCost(cartCost);
         const totalCost = cartCost + deliveryCost;
 
         const MAX_DISTANCE_IN_KM = await getSettingValue('MAX_DISTANCE_IN_KM')

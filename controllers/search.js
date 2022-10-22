@@ -7,6 +7,7 @@ import Setting from '../models/setting.js';
 import New from '../models/new.js'
 import Campaign from '../models/campaign.js'
 import Referrer from "../models/referrer.js";
+import CourierTariff from "../models/courierTariff.js";
 
 
 const getEntity = (entity) => {
@@ -27,6 +28,8 @@ const getEntity = (entity) => {
             return Campaign
         case 'referrer':
             return Referrer
+        case 'courierTariff':
+            return CourierTariff
         default:
             throw new BadRequest('Entity not found!')
     }
@@ -61,7 +64,7 @@ export const search = async (req, res, next) => {
             populate.forEach(p=>{
                 data.populate(p)
             })
-        }else{
+        }else if(typeof populate === "string"){
             data.populate(populate)
         }
 
