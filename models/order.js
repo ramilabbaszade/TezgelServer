@@ -36,6 +36,10 @@ const orderSchema = new Schema({
         enum: orderStates,
         default: 'created'
     },
+    deliveryState: {
+        type: String,
+        enum: orderStates,
+    },
     payment: new Schema({
         cartCost: {
             required: true,
