@@ -1,5 +1,6 @@
 import Address from '../models/address.js';
 import { NotAuthorized, BadRequest } from '../utils/errors.js';
+import User from "../models/user.js";
 
 
 export const createAddress = async (req, res, next) => {
@@ -14,6 +15,7 @@ export const createAddress = async (req, res, next) => {
         // 50 KM variable kimi settings modelda olmalidi. admin panelden editable
 
         const defaultAddress = await Address.findOne({ _user: auth._user, isDefault: true });
+        const userInfo = await User.findOne({ _id: auth._user });
 
         if (defaultAddress) {
             defaultAddress.isDefault = false;
@@ -24,7 +26,7 @@ export const createAddress = async (req, res, next) => {
             _user: auth._user,
             location: { coordinates },
             name,
-            phoneNumber: '0502025040',
+            phoneNumber: userInfo.phoneNumber,
             directions,
             isDefault: true
         })
