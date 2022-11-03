@@ -59,10 +59,12 @@ export const getOrders = async (req, res, next) => {
 
 export const createOrder = async (req, res, next) => {
     try {
+        let d = await calculateDeliveryCost({}, {});
+        return res.json({d});
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
 
-        const { note, leftDoor, dontRing, paymentMethod, address, referrerValues,deliveryCost } = req.body;
+        const { note, leftDoor, dontRing, paymentMethod, address, referrerValues } = req.body;
 
         if (!address) throw new BadRequest('Ünvanın seçilməyi zəruridir.')
 
@@ -73,9 +75,7 @@ export const createOrder = async (req, res, next) => {
         });
 
 
-        const cartCost = await calculateCartCost(cart);
-        // const deliveryCost = deliveryCost || calculateDeliveryCost(cartCost);
-        const totalCost = cartCost + deliveryCost;
+
 
         const MAX_DISTANCE_IN_KM = await getSettingValue('MAX_DISTANCE_IN_KM')
         const warehouse = await Warehouse.findOne({
@@ -92,6 +92,11 @@ export const createOrder = async (req, res, next) => {
 
         if (!warehouse)
             throw new BadRequest('Seçilən ünvan xidmət şəbəkəsi əhatə dairəsində görsənmir.')
+
+        const cartCost = await calculateCartCost(cart);
+        const deliveryCost = await calculateDeliveryCost(address, warehouse);
+        const totalCost = cartCost + deliveryCost;
+
         if (cartCost <= warehouse.minCartTotal)
             throw new BadRequest(`Minimum səbət dəyəri: ${price(warehouse.minCartTotal)}. Sifariş vermək üçün səbətinizə ${price(warehouse.minCartTotal - cartCost + 0.01)} dəyərində məhsul artırın.`)
 
@@ -197,12 +202,12 @@ async function createOrder1({ auth, note, leftDoor, address, paymentMethod, dont
 
     let user = await User.findById(auth._user)
 
-    const {id, activeReferProductsTotalPrice} = referrerValues
+    const { id, activeReferProductsTotalPrice } = referrerValues
 
-    if(!user.isUsedReferrerCode){
-        if(activeReferProductsTotalPrice > 0){
-            await User.updateOne({_id: auth._user}, {isUsedReferrerCode: true})
-            await Referrer.updateOne({_id: id}, {
+    if (!user.isUsedReferrerCode) {
+        if (activeReferProductsTotalPrice > 0) {
+            await User.updateOne({ _id: auth._user }, { isUsedReferrerCode: true })
+            await Referrer.updateOne({ _id: id }, {
                 $push: {
                     orders: {
                         orderId: order._id, activeReferProductsTotalPrice

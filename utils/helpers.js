@@ -1,6 +1,7 @@
 import Stock from "../models/stock.js";
 import Warehouse from "../models/warehouse.js";
 import Product from "../models/product.js";
+import CourierTariff from '../models/courierTariff.js'
 
 export const makePinCode = (length, numeric = false) => {
   var result = '';
@@ -115,27 +116,61 @@ export const calculateCartCost = async (cart) => {
   })
 }
 
-export const calculateDeliveryCost = async (cartTotal) => {
-  return new Promise(res => {
-    if (cartTotal === 0) res(0);
-    const deliveryCostSettingsSample = [
-      {
-        cost: 3.99,
-        limit: 9.99
-      },
-      {
-        cost: 1.99,
-        limit: 19.99
-      },
-      {
-        cost: 0,
-        limit: 30
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2 - lat1);  // deg2rad below
+  var dLon = deg2rad(lon2 - lon1);
+  var a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    ;
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180)
+}
+
+export const calculateDeliveryCost = async (address, warehouse) => {
+  return new Promise(async res => {
+    // const distance = getDistanceFromLatLonInKm(
+    //   address.location.coordinates[1],
+    //   address.location.coordinates[0],
+    //   warehouse.location.coordinates[1],
+    //   warehouse.location.coordinates[0]
+    // )
+    // const km = Math.round(distance);
+    const km = 6;
+    const tariffs = await CourierTariff.find().sort({km: 'asc'});
+    
+    let cost = tariffs[0].minPrice;
+
+    if (km <= 1) res(cost);
+    
+    const ts = tariffs.slice(1);
+
+    let biggestTariffs = [];
+    for (let i = 0; i < ts.length; i++) {
+      try {
+        if (ts[i].price > ts[i+1].price) biggestTariffs.push(ts[i])
+      } catch (error) {
+        if (ts[i].km === 1000) biggestTariffs.push(ts[i])
+        break;
       }
-    ]
-    deliveryCostSettingsSample.forEach(c => {
-      if (cartTotal <= c.limit) res(c.cost)
-      else res(0)
-    })
+    }
+
+    let addedKms = 1;
+    
+    for (const t of biggestTariffs) {
+      if (addedKms >= km) break; 
+      cost += (t.km - addedKms) * t.price;
+      addedKms += Math.abs(km - t.km)
+    }
+
+    res(cost);
   })
 }
 
@@ -152,7 +187,7 @@ export function calcCrow(lat1, lon1, lat2, lon2) {
   var lat2 = toRad(lat2);
 
   var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   var d = R * c;
   return d;
@@ -173,17 +208,17 @@ export const addStock = async ({
   qty
 }) => {
   const newStock = await Stock.create({
-      _product,
-      _warehouse,
-      _supplier,
-      _cashbox,
-      buyAmount,
-      buyPrice,
-      buyDiscount,
-      saleAmount,
-      salePrice,
-      saleDiscount,
-      qty
+    _product,
+    _warehouse,
+    _supplier,
+    _cashbox,
+    buyAmount,
+    buyPrice,
+    buyDiscount,
+    saleAmount,
+    salePrice,
+    saleDiscount,
+    qty
   });
 
   const warehouse = await Warehouse.findById(_warehouse);
@@ -191,18 +226,18 @@ export const addStock = async ({
 
   const alreadyAddedProduct = warehouse.stocks?.find(s => s._product == _product);
   if (alreadyAddedProduct) {
-      warehouse.stocks = warehouse.stocks.map(s => s._product == _product 
-          ? ({_product, qty: s.qty + qty}) 
-          : s)
-      product.inStock = product.inStock.map(s => s._warehouse == _warehouse 
-          ? ({_warehouse, qty: s.qty + qty}) 
-          : s)
+    warehouse.stocks = warehouse.stocks.map(s => s._product == _product
+      ? ({ _product, qty: s.qty + qty })
+      : s)
+    product.inStock = product.inStock.map(s => s._warehouse == _warehouse
+      ? ({ _warehouse, qty: s.qty + qty })
+      : s)
   }
   else {
-      warehouse.stocks.push({_product, qty})
-      product.inStock.push({_warehouse, qty})
+    warehouse.stocks.push({ _product, qty })
+    product.inStock.push({ _warehouse, qty })
   }
-  
+
 
   await newStock.save()
   await warehouse.save()

@@ -2,18 +2,12 @@ import mongoose from 'mongoose';
 const { Schema, model } = mongoose;
 
 const courierTariffSchema = new Schema({
-    price: {
+    price: Number,
+    km:{
         type: Number,
         required: true,
     },
-    fromKm:{
-        type: Number,
-        required: true,
-    },
-    toKm:{
-        type: Number,
-        required: true,
-    },
+    minPrice: Number
 }, { timestamps: true });
 
 const CourierTariff = model('CourierTariff', courierTariffSchema);
