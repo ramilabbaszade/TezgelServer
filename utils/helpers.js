@@ -136,38 +136,29 @@ function deg2rad(deg) {
 
 export const calculateDeliveryCost = async (address, warehouse) => {
   return new Promise(async res => {
-    // const distance = getDistanceFromLatLonInKm(
-    //   address.location.coordinates[1],
-    //   address.location.coordinates[0],
-    //   warehouse.location.coordinates[1],
-    //   warehouse.location.coordinates[0]
-    // )
-    // const km = Math.round(distance);
-    const km = 6;
-    const tariffs = await CourierTariff.find().sort({km: 'asc'});
+    const distance = getDistanceFromLatLonInKm(
+      address.location.coordinates[1],
+      address.location.coordinates[0],
+      warehouse.location.coordinates[1],
+      warehouse.location.coordinates[0]
+    )
+    const km = Math.round(distance);
     
-    let cost = tariffs[0].minPrice;
-
-    if (km <= 1) res(cost);
+    const tariffs = await CourierTariff.find().sort({km: 'asc'})
+    if (km <= tariffs[0].km) res(tariffs[0].minPrice);
     
-    const ts = tariffs.slice(1);
+    let cost = 0;
+    let addedKms = 0;
 
-    let biggestTariffs = [];
-    for (let i = 0; i < ts.length; i++) {
-      try {
-        if (ts[i].price > ts[i+1].price) biggestTariffs.push(ts[i])
-      } catch (error) {
-        if (ts[i].km === 1000) biggestTariffs.push(ts[i])
-        break;
-      }
-    }
+    for (let i = 0; i < tariffs.length; i++) {
+      if (addedKms >= km) break;
+      const t = tariffs[i];
+      
+      if (i === 0) cost += t.minPrice;
+      else if (t.km === 1000) res(cost + (km - addedKms) * t.price)
+      else cost += t.price;
 
-    let addedKms = 1;
-    
-    for (const t of biggestTariffs) {
-      if (addedKms >= km) break; 
-      cost += (t.km - addedKms) * t.price;
-      addedKms += Math.abs(km - t.km)
+      addedKms++;
     }
 
     res(cost);

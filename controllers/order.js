@@ -59,8 +59,7 @@ export const getOrders = async (req, res, next) => {
 
 export const createOrder = async (req, res, next) => {
     try {
-        let d = await calculateDeliveryCost({}, {});
-        return res.json({d});
+
         const auth = req.currentUser;
         if (!auth) throw new NotAuthorized('Zəhmət olmasa, daxil olun.');
 
@@ -138,7 +137,31 @@ export const createOrder = async (req, res, next) => {
     }
 }
 
+export const calculateCourier = async (req,res,next) => {
+    try {
+        const {address} = req.body;
+        const MAX_DISTANCE_IN_KM = await getSettingValue('MAX_DISTANCE_IN_KM')
+        const warehouse = await Warehouse.findOne({
+            type: 'primary', location: {
+                $near: {
+                    $geometry: {
+                        type: "Point",
+                        coordinates: address.location.coordinates
+                    },
+                    $maxDistance: MAX_DISTANCE_IN_KM * 1000,
+                }
+            }
+        })
 
+        if (!warehouse)
+            throw new BadRequest('Seçilən ünvan xidmət şəbəkəsi əhatə dairəsində görsənmir.')
+
+        const deliveryCost = await calculateDeliveryCost(address, warehouse);
+        return res.json({deliveryCost});
+    } catch (error) {
+        next(error)
+    }
+}
 
 
 export const paymesReturn = async (req, res, next) => {
