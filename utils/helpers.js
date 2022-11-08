@@ -2,6 +2,7 @@ import Stock from "../models/stock.js";
 import Warehouse from "../models/warehouse.js";
 import Product from "../models/product.js";
 import CourierTariff from '../models/courierTariff.js'
+import fetch from 'node-fetch';
 
 export const makePinCode = (length, numeric = false) => {
   var result = '';
@@ -135,33 +136,46 @@ function deg2rad(deg) {
 }
 
 export const calculateDeliveryCost = async (address, warehouse) => {
-  return new Promise(async res => {
-    const distance = getDistanceFromLatLonInKm(
-      address.location.coordinates[1],
-      address.location.coordinates[0],
-      warehouse.location.coordinates[1],
-      warehouse.location.coordinates[0]
-    )
-    const km = Math.round(distance);
-    
-    const tariffs = await CourierTariff.find().sort({km: 'asc'})
-    if (km <= tariffs[0].km) res(tariffs[0].minPrice);
-    
-    let cost = 0;
-    let addedKms = 0;
+  return new Promise(async (res,rej) => {
+    // console.log(address.location.coordinates)
+    // console.log(warehouse.location.coordinates)
+    // const distance = getDistanceFromLatLonInKm(
+    //   address.location.coordinates[0],
+    //   address.location.coordinates[1],
+    //   warehouse.location.coordinates[0],
+    //   warehouse.location.coordinates[1]
+    // )
+    // const km = Math.round(distance);
+    let url = 'https://maps.googleapis.com/maps/api/distancematrix/json?units=km&key=AIzaSyAP3OlGExXCbu1OXKbnNbvqH0ahgBUfhhY'
+    url += '&origins=' + warehouse.location.coordinates[1] + ',' + warehouse.location.coordinates[0]
+    url += '&destinations=' + address.location.coordinates[1] + ',' + address.location.coordinates[0]
+    fetch(url).then(response => {
+      return response.json();
+    })
+      .then(async resp => {
+        const km = Math.round(resp.rows[0].elements[0].distance.value / 1000);
+        const tariffs = await CourierTariff.find().sort({ km: 'asc' })
+        if (km <= tariffs[0].km) res(tariffs[0].minPrice);
 
-    for (let i = 0; i < tariffs.length; i++) {
-      if (addedKms >= km) break;
-      const t = tariffs[i];
-      
-      if (i === 0) cost += t.minPrice;
-      else if (t.km === 1000) res(cost + (km - addedKms) * t.price)
-      else cost += t.price;
+        let cost = 0;
+        let addedKms = 0;
 
-      addedKms++;
-    }
+        for (let i = 0; i < tariffs.length; i++) {
+          if (addedKms >= km) break;
+          const t = tariffs[i];
 
-    res(cost);
+          if (i === 0) cost += t.minPrice;
+          else if (t.km === 1000) res(cost + (km - addedKms) * t.price)
+          else cost += t.price;
+
+          addedKms++;
+        }
+
+        res(cost);
+      })
+      .catch(error => rej(error.message));
+
+
   })
 }
 
