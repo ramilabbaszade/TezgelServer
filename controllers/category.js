@@ -9,10 +9,8 @@ import { default as nodeFetch } from 'node-fetch';
 export const getCategories = async (req, res, next) => {
 
     try {
-        const categories = await Category.find()
-        
-        
-        
+        const categories = await Category.find().sort({position:'asc'})
+
         return res.json({
             categories,
             status: 'success'
