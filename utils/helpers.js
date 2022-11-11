@@ -55,6 +55,8 @@ export const getSortObjs = sort => {
   return convertArrayToObject(sortObjs)
 }
 
+export const fixPrice = (data) => data?.toFixed(2)
+
 export const getSearchObjs = search => {
   if (!search) return {};
   let sortObjs = [];

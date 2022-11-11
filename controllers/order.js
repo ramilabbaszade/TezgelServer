@@ -4,7 +4,7 @@ import Cart from "../models/cart.js";
 import Order from "../models/order.js";
 import Warehouse from "../models/warehouse.js";
 import { NotAuthorized, NotFound, BadRequest } from '../utils/errors.js';
-import { calculateDeliveryCost, calculateCartCost } from "../utils/helpers.js";
+import {calculateDeliveryCost, calculateCartCost, fixPrice} from "../utils/helpers.js";
 import { price } from "../utils/format.js";
 import User from '../models/user.js'
 import createPaymesPayment from "../utils/paymes.js";
@@ -103,7 +103,7 @@ export const createOrder = async (req, res, next) => {
             try {
                 const user = await User.findById(auth._user);
                 const response = await createPaymesPayment({
-                    productPrice: totalCost,
+                    productPrice: fixPrice(totalCost),
                     productName: 'Tezgel sifariş',
                     firstName: user.displayName,
                     lastName: ' ',
@@ -213,9 +213,9 @@ async function createOrder1({ auth, note, leftDoor, address, paymentMethod, dont
         cart,
         _warehouse: warehouse._id,
         payment: {
-            cartCost,
-            deliveryCost,
-            totalCost,
+            cartCost:fixPrice(cartCost),
+            deliveryCost:fixPrice(deliveryCost),
+            totalCost:fixPrice(totalCost),
             isPaid,
             method: paymentMethod
         }
